@@ -118,16 +118,27 @@ function Library:AttemptSave()
     end;
 end;
 
-function Library:Create(Class, Properties)
-    local Object = Instance.new(Class)
+function Library:Create(ClassName, Properties)
+    -- 1. Create the object
+    local Object = Instance.new(ClassName)
     
-    -- AUTOMATIC ROUNDING START
-    if Class == 'Frame' or Class == 'TextLabel' or Class == 'TextBox' or Class == 'ImageLabel' then
+    -- 2. Your automatic rounding (this logic works, keep it!)
+    if ClassName == 'Frame' or ClassName == 'TextLabel' or ClassName == 'TextBox' or ClassName == 'ImageLabel' then
         local Corner = Instance.new('UICorner')
-        Corner.CornerRadius = UDim.new(0, 6) -- Change '6' to make it more or less round
+        Corner.CornerRadius = UDim.new(0, 6)
         Corner.Parent = Object
     end
-    -- AUTOMATIC ROUNDING END
+
+    -- 3. APPLY PROPERTIES (This is what you were missing)
+    -- This loops through your properties table and sets them on the object
+    for Property, Value in next, Properties do
+        Object[Property] = Value
+    end
+
+    -- 4. RETURN THE OBJECT (The most important part)
+    -- Without this, your library "forgets" the object existed
+    return Object
+end
 
     if type(Class) == 'string' then
         _Instance = Instance.new(Class);
