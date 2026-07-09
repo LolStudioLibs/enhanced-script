@@ -118,10 +118,10 @@ function Library:AttemptSave()
     end;
 end;
 
-function Library:Create(Class, Properties)
-    local Object = Instance.new(Class)
-
--- AUTOMATIC ROUNDING START
+function Library:Create(ClassName, Properties)
+    local Object = Instance.new(ClassName)
+    
+    -- AUTOMATIC ROUNDING START
     if ClassName == 'Frame' or ClassName == 'TextLabel' or ClassName == 'TextBox' or ClassName == 'ImageLabel' then
         local Corner = Instance.new('UICorner')
         Corner.CornerRadius = UDim.new(0, 6) -- Change '6' to make it more or less round
