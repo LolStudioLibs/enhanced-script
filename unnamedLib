@@ -120,14 +120,6 @@ end;
 
 function Library:Create(Class, Properties)
     local Object = Instance.new(Class)
-    
-    -- AUTOMATIC ROUNDING START
-    if ClassName == 'Frame' or ClassName == 'TextLabel' or ClassName == 'TextBox' or ClassName == 'ImageLabel' then
-        local Corner = Instance.new('UICorner')
-        Corner.CornerRadius = UDim.new(0, 6) -- Change '6' to make it more or less round
-        Corner.Parent = Object
-    end
-    -- AUTOMATIC ROUNDING END
 
     if type(Class) == 'string' then
         _Instance = Instance.new(Class);
