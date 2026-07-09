@@ -149,7 +149,6 @@ end
     end;
 
     return _Instance;
-end;
 
 function Library:ApplyTextStroke(Inst)
     Inst.TextStrokeTransparency = 1;
