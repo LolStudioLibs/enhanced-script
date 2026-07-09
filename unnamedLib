@@ -148,7 +148,7 @@ function Library:ApplyTextStroke(Inst)
         Thickness = 1;
         LineJoinMode = Enum.LineJoinMode.Miter;
         Parent = Inst;
-        Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border -- This keeps the stroke inside the frame
+        Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border -- This keeps the stroke inside the frame}
     });
 end;
 
