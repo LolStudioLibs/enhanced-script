@@ -2836,6 +2836,18 @@ Library:MakeDraggable(Library.Watermark);
     Library:MakeDraggable(KeybindOuter);
 end;
 
+-- Add these to your Library table if they aren't there!
+function Library:SetWatermarkVisibility(Bool)
+    Library.Watermark.Visible = Bool;
+end;
+
+function Library:SetWatermark(Text)
+    local X, Y = Library:GetTextBounds(Text, Library.Font, 14);
+    Library.Watermark.Size = UDim2.new(0, X + 15, 0, (Y * 1.5) + 3);
+    Library:SetWatermarkVisibility(true)
+    Library.WatermarkText.Text = Text;
+end;
+
 function Library:SetWatermark(Text)
     local X, Y = Library:GetTextBounds(Text, Library.Font, 14);
     Library.Watermark.Size = UDim2.new(0, X + 15, 0, (Y * 1.5) + 3);
@@ -3106,15 +3118,21 @@ Library:Create('UICorner', { CornerRadius = UDim.new(0, 4), Parent = MainSection
 Library:Create('UICorner', { CornerRadius = UDim.new(0, 4), Parent = MainSectionInner })
 Library:Create('UICorner', { CornerRadius = UDim.new(0, 4), Parent = TabContainer })
 
--- INJECTING UISTROKE TO BRING BACK THE OUTLINES
+-- ROUND ONLY THE OUTER SHELL
+Library:Create('UICorner', { CornerRadius = UDim.new(0, 4), Parent = Outer })
+
+-- OUTLINE STROKE (Syncs to AccentColor)
 local function ApplyOutline(target)
     local stroke = Instance.new("UIStroke")
     stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     stroke.Thickness = 1
-    stroke.Color = Library.OutlineColor
+    stroke.Color = Library.AccentColor -- LOCKED TO ACCENT
     stroke.Parent = target
-    Library:AddToRegistry(stroke, { Color = 'OutlineColor' })
+    Library:AddToRegistry(stroke, { Color = 'AccentColor' })
 end
+
+-- Apply to Outer only
+ApplyOutline(Outer)
 
 ApplyOutline(Outer)
 ApplyOutline(Inner)
@@ -3682,27 +3700,27 @@ ApplyOutline(TabContainer)
 
 if Config.AutoShow then task.spawn(Library.Toggle) end
 
-    -- TITLE TYPEWRITER ANIMATION LOGIC
+-- TITLE TYPEWRITER ANIMATION (SPEED: 0.05s)
     local originalTitle = Config.Title or "Menu"
     task.spawn(function()
         while ScreenGui.Parent do
-            -- Backspace effect
-            for i = #originalTitle, 1, -1 do
-                if not WindowLabel or not WindowLabel.Parent then return end
+            -- Backspace
+            for i = #originalTitle, 0, -1 do
+                if not WindowLabel then break end
                 WindowLabel.Text = string.sub(originalTitle, 1, i)
-                task.wait(1) 
+                task.wait(0.05) -- Much faster!
             end
             
             task.wait(0.5) 
             
-            -- Re-typing effect
+            -- Re-type
             for i = 1, #originalTitle do
-                if not WindowLabel or not WindowLabel.Parent then return end
+                if not WindowLabel then break end
                 WindowLabel.Text = string.sub(originalTitle, 1, i)
-                task.wait(1) 
+                task.wait(0.05) -- Much faster!
             end
             
-            task.wait(2) 
+            task.wait(2) -- Pause at end
         end
     end)
 
