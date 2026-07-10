@@ -118,8 +118,16 @@ function Library:AttemptSave()
     end;
 end;
 
-function Library:Create(Class, Properties)
-    local _Instance = Class;
+function Library:Create(ClassName, Properties)
+    local Object = Instance.new(ClassName)
+    
+    -- AUTOMATIC ROUNDING START
+    if ClassName == 'Frame' or ClassName == 'TextLabel' or ClassName == 'TextBox' or ClassName == 'ImageLabel' then
+        local Corner = Instance.new('UICorner')
+        Corner.CornerRadius = UDim.new(0, 6) -- Change '6' to make it more or less round
+        Corner.Parent = Object
+    end
+    -- AUTOMATIC ROUNDING END
 
     if type(Class) == 'string' then
         _Instance = Instance.new(Class);
@@ -163,7 +171,6 @@ end;
 
 function Library:MakeDraggable(Instance, Cutoff)
     Instance.Active = true;
-
     Instance.InputBegan:Connect(function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseButton1 then
             local ObjPos = Vector2.new(
@@ -176,13 +183,15 @@ function Library:MakeDraggable(Instance, Cutoff)
             end;
 
             while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
-                Instance.Position = UDim2.new(
+                local targetPos = UDim2.new(
                     0,
                     Mouse.X - ObjPos.X + (Instance.Size.X.Offset * Instance.AnchorPoint.X),
                     0,
                     Mouse.Y - ObjPos.Y + (Instance.Size.Y.Offset * Instance.AnchorPoint.Y)
                 );
-
+                
+                -- Modded: Buttery smooth tweening for drag
+                TweenService:Create(Instance, TweenInfo.new(0.015, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Position = targetPos}):Play()
                 RenderStepped:Wait();
             end;
         end;
@@ -2695,36 +2704,46 @@ do
         Parent = Library.NotificationArea;
     });
 
-    local WatermarkOuter = Library:Create('Frame', {
-        BorderColor3 = Color3.new(0, 0, 0);
+local WatermarkOuter = Library:Create('Frame', {
+        BackgroundColor3 = Color3.new(0, 0, 0);
+        BorderSizePixel = 0; -- Modded: Removed blocky border
         Position = UDim2.new(0, 100, 0, -25);
         Size = UDim2.new(0, 213, 0, 20);
         ZIndex = 200;
         Visible = false;
         Parent = ScreenGui;
     });
+    Library:Create('UICorner', { CornerRadius = UDim.new(0, 4), Parent = WatermarkOuter }) -- Modded: Rounded corners
 
     local WatermarkInner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
-        BorderColor3 = Library.AccentColor;
-        BorderMode = Enum.BorderMode.Inset;
-        Size = UDim2.new(1, 0, 1, 0);
+        BorderSizePixel = 0;
+        Position = UDim2.new(0, 1, 0, 1);
+        Size = UDim2.new(1, -2, 1, -2);
         ZIndex = 201;
         Parent = WatermarkOuter;
     });
-
-    Library:AddToRegistry(WatermarkInner, {
-        BorderColor3 = 'AccentColor';
+    Library:Create('UICorner', { CornerRadius = UDim.new(0, 3), Parent = WatermarkInner })
+    
+    -- Modded: Using UIStroke so the rounded corners keep their accent color
+    local WatermarkStroke = Library:Create('UIStroke', {
+        Color = Library.AccentColor;
+        Thickness = 1;
+        Parent = WatermarkInner;
+    })
+    Library:AddToRegistry(WatermarkStroke, {
+        Color = 'AccentColor';
     });
 
     local InnerFrame = Library:Create('Frame', {
         BackgroundColor3 = Color3.new(1, 1, 1);
         BorderSizePixel = 0;
-        Position = UDim2.new(0, 1, 0, 1);
-        Size = UDim2.new(1, -2, 1, -2);
+        Position = UDim2.new(0, 0, 0, 0);
+        Size = UDim2.new(1, 0, 1, 0);
         ZIndex = 202;
         Parent = WatermarkInner;
     });
+    Library:Create('UICorner', { CornerRadius = UDim.new(0, 3), Parent = InnerFrame })
 
     local Gradient = Library:Create('UIGradient', {
         Color = ColorSequence.new({
@@ -2959,7 +2978,7 @@ function Library:CreateWindow(...)
         Tabs = {};
     };
 
-    local Outer = Library:Create('Frame', {
+local Outer = Library:Create('Frame', {
         AnchorPoint = Config.AnchorPoint,
         BackgroundColor3 = Color3.new(0, 0, 0);
         BorderSizePixel = 0;
@@ -2969,32 +2988,84 @@ function Library:CreateWindow(...)
         ZIndex = 1;
         Parent = ScreenGui;
     });
+    Library:Create('UICorner', { CornerRadius = UDim.new(0, 6), Parent = Outer }) -- Modded: Rounded outside
 
     Library:MakeDraggable(Outer, 25);
 
     local Inner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
-        BorderColor3 = Library.AccentColor;
-        BorderMode = Enum.BorderMode.Inset;
+        BorderSizePixel = 0;
         Position = UDim2.new(0, 1, 0, 1);
         Size = UDim2.new(1, -2, 1, -2);
         ZIndex = 1;
         Parent = Outer;
     });
+    Library:Create('UICorner', { CornerRadius = UDim.new(0, 5), Parent = Inner }) -- Modded: Rounded inside
+    
+    local InnerStroke = Library:Create('UIStroke', {
+        Color = Library.AccentColor;
+        Thickness = 1;
+        Parent = Inner;
+    })
 
     Library:AddToRegistry(Inner, {
         BackgroundColor3 = 'MainColor';
-        BorderColor3 = 'AccentColor';
+    });
+    Library:AddToRegistry(InnerStroke, {
+        Color = 'AccentColor';
     });
 
+    -- Modded: Centered Title Label
     local WindowLabel = Library:CreateLabel({
-        Position = UDim2.new(0, 7, 0, 0);
-        Size = UDim2.new(0, 0, 0, 25);
+        Position = UDim2.new(0, 0, 0, 0);
+        Size = UDim2.new(1, 0, 0, 25); -- Spans the whole top bar to center it perfectly
         Text = Config.Title or '';
-        TextXAlignment = Enum.TextXAlignment.Left;
+        TextXAlignment = Enum.TextXAlignment.Center;
         ZIndex = 1;
         Parent = Inner;
     });
+
+    -- Modded: Game Name on the far right, synced with Accent Color
+    local success, gameInfo = pcall(function() return game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId) end)
+    local GameNameStr = success and gameInfo.Name or "Unknown Game"
+    
+    local GameNameLabel = Library:CreateLabel({
+        Position = UDim2.new(1, -10, 0, 0);
+        Size = UDim2.new(0, 0, 0, 25);
+        Text = GameNameStr;
+        TextXAlignment = Enum.TextXAlignment.Right;
+        ZIndex = 1;
+        Parent = Inner;
+    });
+    Library:AddToRegistry(GameNameLabel, {
+        TextColor3 = 'AccentColor'; -- Automatically changes color when you swap themes!
+    });
+
+    -- Modded: Title Typewriter / Deletion Animation
+    task.spawn(function()
+        local baseTitle = Config.Title or "Menu"
+        local typing = false
+        
+        while true do
+            if not typing then
+                -- Deleting effect (backwards)
+                for i = #baseTitle, 0, -1 do
+                    WindowLabel.Text = string.sub(baseTitle, 1, i)
+                    task.wait(0.08)
+                end
+                typing = true
+                task.wait(0.5)
+            else
+                -- Typing effect (forwards)
+                for i = 1, #baseTitle do
+                    WindowLabel.Text = string.sub(baseTitle, 1, i)
+                    task.wait(0.08)
+                end
+                typing = false
+                task.wait(2.5) -- Wait 2.5 seconds before deleting again
+            end
+        end
+    end)
 
     local MainSectionOuter = Library:Create('Frame', {
         BackgroundColor3 = Library.BackgroundColor;
