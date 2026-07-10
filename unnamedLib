@@ -3662,4 +3662,88 @@ function Library:ApplyOuterRounding()
     Corner.Parent = MainFrame
 end
 
+function Library:AnimateCenterTitle()
+    task.spawn(function()
+        local MainFrame = Library.Outer
+        if not MainFrame then return end
+        
+        -- Locate the exact original title label inside the top bar
+        local TitleLabel = nil
+        for _, child in pairs(MainFrame:GetDescendants()) do
+            if child:IsA("TextLabel") and child.TextXAlignment == Enum.TextXAlignment.Left then
+                TitleLabel = child
+                break
+            end
+        end
+        
+        if not TitleLabel then return end
+        local OriginalText = TitleLabel.Text
+        
+        -- FORCE the label to be perfectly centered on the top bar at all times
+        TitleLabel.Size = UDim2.new(1, -20, 0, TitleLabel.Size.Y.Offset)
+        TitleLabel.Position = UDim2.new(0, 10, 0, 0)
+        TitleLabel.TextXAlignment = Enum.TextXAlignment.Center
+        
+        -- The infinite Typewriter cycle
+        while task.wait() do
+            task.wait(2) -- Clean 2-second cooldown while the title is fully displayed
+            
+            -- Deletion Phase (Deletes character by character backward)
+            for i = #OriginalText, 1, -1 do
+                TitleLabel.Text = string.sub(OriginalText, 1, i)
+                task.wait(0.06)
+            end
+            
+            TitleLabel.Text = ""
+            task.wait(0.4)
+            
+            -- Re-typing Phase (Types character by character forward)
+            for i = 1, #OriginalText do
+                TitleLabel.Text = string.sub(OriginalText, 1, i)
+                task.wait(0.06)
+            end
+        end
+    end)
+end
+
+function Library:AddGameNameRight()
+    local MainFrame = Library.Outer
+    if not MainFrame then return end
+    
+    if not MainFrame:FindFirstChild("GameTrackerLabel") then
+        local GameLabel = Instance.new("TextLabel")
+        GameLabel.Name = "GameTrackerLabel"
+        GameLabel.Size = UDim2.new(0, 200, 0, 25) -- Plenty of horizontal room for long titles
+        GameLabel.Position = UDim2.new(1, -12, 0, 0) -- Fixed flush to the far right edge
+        GameLabel.AnchorPoint = Vector2.new(1, 0)
+        GameLabel.BackgroundTransparency = 1
+        
+        -- Matches text style cleanly to Linoria's layout font
+        GameLabel.Font = Enum.Font.Code
+        GameLabel.TextSize = 13
+        GameLabel.TextXAlignment = Enum.TextXAlignment.Right
+        GameLabel.TextYAlignment = Enum.TextYAlignment.Center
+        GameLabel.ZIndex = 1000
+        
+        -- Automatically matches the active accent/theme color configuration of your UI
+        if Library.AccentColor then
+            GameLabel.TextColor3 = Library.AccentColor
+        else
+            GameLabel.TextColor3 = Color3.fromRGB(0, 223, 255)
+        end
+        
+        -- Dynamic fetch with a safe environment check
+        local MarketplaceService = game:GetService("MarketplaceService")
+        local Success, Info = pcall(function() return MarketplaceService:GetProductInfo(game.PlaceId) end)
+        
+        if Success and Info and Info.Name and game.PlaceId ~= 0 then
+            GameLabel.Text = tostring(Info.Name)
+        else
+            GameLabel.Text = "void. . ."
+        end
+        
+        GameLabel.Parent = MainFrame
+    end
+end
+
 return Library; -- <--- THIS MUST BE THE ABSOLUTE LAST LINE OF YOUR SCRIPT
