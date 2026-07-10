@@ -3649,117 +3649,16 @@ Players.PlayerRemoving:Connect(OnPlayerChange);
 
 getgenv().Library = Library
 
-function Library:StartSplash()
-    task.spawn(function()
-        local MainFrame = Library.Outer
-        if not MainFrame then return end
-        
-        -- 1. Spawn INSTANTLY matching the exact size of the main UI container
-        local SplashFrame = Instance.new("Frame")
-        SplashFrame.Size = UDim2.new(1, 0, 1, 0)
-        SplashFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-        SplashFrame.ZIndex = 50000 
-        SplashFrame.BackgroundTransparency = 0 -- Fully covers the UI instantly on load
-        SplashFrame.Parent = MainFrame
-        
-        local Corner = Instance.new("UICorner")
-        Corner.CornerRadius = UDim.new(0, 6)
-        Corner.Parent = SplashFrame
-        
-        -- 2. Centered typewriter text
-        local Text = Instance.new("TextLabel")
-        Text.Size = UDim2.new(1, 0, 1, 0)
-        Text.BackgroundTransparency = 1
-        Text.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Text.Font = Enum.Font.Code
-        Text.TextSize = 16
-        Text.TextXAlignment = Enum.TextXAlignment.Center 
-        Text.TextYAlignment = Enum.TextYAlignment.Center 
-        Text.ZIndex = 50001
-        Text.Parent = SplashFrame
-        
-        -- 3. System Typewriter Execution
-        local Phrase1 = "System Initializing..."
-        local Phrase2 = "Welcome to unnamed Lib."
-        
-        for i = 1, #Phrase1 do
-            Text.Text = string.sub(Phrase1, 1, i) .. "_"
-            task.wait(0.03)
-        end
-        task.wait(0.4)
-        
-        for i = #Phrase1, 0, -1 do
-            Text.Text = string.sub(Phrase1, 1, i) .. "_"
-            task.wait(0.01)
-        end
-        task.wait(0.2)
-        
-        for i = 1, #Phrase2 do
-            Text.Text = string.sub(Phrase2, 1, i) .. "_"
-            task.wait(0.04)
-        end
-        Text.Text = Phrase2 
-        task.wait(1)
-        
-        -- 4. Smooth Fade out to reveal the fully loaded UI beneath
-        local TweenService = game:GetService("TweenService")
-        TweenService:Create(SplashFrame, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
-        TweenService:Create(Text, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
-        task.wait(0.4)
-        
-        SplashFrame:Destroy()
-    end)
-end
-
-function Library:AnimateTitle()
-    task.spawn(function()
-        local MainFrame = Library.Outer
-        if not MainFrame then return end
-        
-        -- Auto-locate the Title TextLabel inside Linoria's header layout
-        local TitleLabel = nil
-        for _, child in pairs(MainFrame:GetDescendants()) do
-            if child:IsA("TextLabel") and child.TextXAlignment == Enum.TextXAlignment.Left then
-                TitleLabel = child
-                break
-            end
-        end
-        
-        if not TitleLabel then return end
-        local OriginalText = TitleLabel.Text
-        
-        -- Endless custom animation loop
-        while true do
-            task.wait(2) -- The 2-second cooldown while fully displayed
-            
-            -- Delete phase (letter by letter backward)
-            for i = #OriginalText, 0, -1 do
-                TitleLabel.Text = string.sub(OriginalText, 1, i) .. "_"
-                task.wait(0.05)
-            end
-            TitleLabel.Text = "_"
-            task.wait(0.3)
-            
-            -- Re-type phase (letter by letter forward)
-            for i = 1, #OriginalText do
-                TitleLabel.Text = string.sub(OriginalText, 1, i) .. "_"
-                task.wait(0.05)
-            end
-            TitleLabel.Text = OriginalText -- Lock original back down
-        end
-    end)
-end
-
 function Library:ApplyOuterRounding()
+    -- Safely targets Linoria's true outer window frame directly
     local MainFrame = Library.Outer
     if not MainFrame then return end
     
-    -- Clip everything inside cleanly to match the rounded edges
+    -- Clip contents cleanly so elements don't bleed out of the rounded edges
     MainFrame.ClipsDescendants = true
     
-    -- Add a slightly rounded corner to the outer edge only
     local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 6) -- Change 6 to a lower number if you want it less rounded
+    Corner.CornerRadius = UDim.new(0, 8) -- Clean, subtle rounded edge
     Corner.Parent = MainFrame
 end
 
