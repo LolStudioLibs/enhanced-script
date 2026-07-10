@@ -122,19 +122,19 @@ function Library:Create(Class, Properties)
     -- 1. Create the object
     local Object = Instance.new(Class)
 
-    -- 2. Apply properties
-    for Property, Value in next, Properties do
-        Object[Property] = Value
-    end
-    
-    -- 3. Automatic Rounding
+    -- 2. Automatic Rounding
     if Class == 'Frame' or Class == 'TextLabel' or Class == 'TextBox' or Class == 'ImageLabel' then
         local Corner = Instance.new('UICorner')
         Corner.CornerRadius = UDim.new(0, 6)
         Corner.Parent = Object
     end
 
-    -- 4. Return the object (This ends the function)
+    -- 3. Apply properties
+    for Property, Value in next, Properties do
+        Object[Property] = Value
+    end
+    
+    -- 4. Return the object (This ends the function properly)
     return Object
 end
 
