@@ -23,10 +23,25 @@ local Options = {};
 getgenv().Toggles = Toggles;
 getgenv().Options = Options;
 
+-- HELPER UTILITIES
+local TweenService = game:GetService("TweenService")
+local MarketplaceService = game:GetService("MarketplaceService")
+
+local function GetGameAbbreviation()
+    local Success, Info = pcall(function() return MarketplaceService:GetProductInfo(game.PlaceId) end)
+    if not Success then return "Unknown" end
+    local Words = string.split(Info.Name, " ")
+    if #Words <= 1 then return Info.Name end
+    local Initials = ""
+    for _, Word in pairs(Words) do
+        if #Word > 0 then Initials = Initials .. string.sub(Word, 1, 1) end
+    end
+    return string.upper(Initials)
+end
+
 local Library = {
     Registry = {};
     RegistryMap = {};
-
     HudRegistry = {};
 
     FontColor = Color3.fromRGB(255, 255, 255);
@@ -119,18 +134,29 @@ function Library:AttemptSave()
 end;
 
 function Library:Create(Class, Properties)
-    local _Instance = Class;
-
-    if type(Class) == 'string' then
-        _Instance = Instance.new(Class);
-    end;
-
-    for Property, Value in next, Properties do
-        _Instance[Property] = Value;
-    end;
-
-    return _Instance;
-end;
+    local _Instance = typeof(Class) == 'string' and Instance.new(Class) or Class
+    
+    if Properties then
+        for Property, Value in next, Properties do
+            pcall(function() _Instance[Property] = Value end)
+        end
+    end
+    
+    -- Universal UI Styling
+    if _Instance:IsA("GuiObject") and not _Instance:IsA("TextLabel") and not _Instance:IsA("TextBox") then
+        local Corner = Instance.new("UICorner")
+        Corner.CornerRadius = UDim.new(0, 6)
+        Corner.Parent = _Instance
+        
+        local Stroke = Instance.new("UIStroke")
+        Stroke.Thickness = 1.5
+        Stroke.Color = Color3.fromRGB(40, 40, 40)
+        Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        Stroke.Parent = _Instance
+    end
+    
+    return _Instance
+end
 
 function Library:ApplyTextStroke(Inst)
     Inst.TextStrokeTransparency = 1;
@@ -2840,6 +2866,11 @@ function Library:SetWatermark(Text)
 
     Library.WatermarkText.Text = Text;
 end;
+
+-- Now paste your new function here:
+function Library:StartSplash()
+    -- Your Splash code here
+end -- And make sure this 'end' is on its own line
 
 function Library:Notify(Text, Time)
     local XSize, YSize = Library:GetTextBounds(Text, Library.Font, 14);
