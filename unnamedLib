@@ -142,17 +142,23 @@ function Library:Create(Class, Properties)
         end
     end
     
-    -- Universal UI Styling
-    if _Instance:IsA("GuiObject") and not _Instance:IsA("TextLabel") and not _Instance:IsA("TextBox") then
-        local Corner = Instance.new("UICorner")
-        Corner.CornerRadius = UDim.new(0, 6)
-        Corner.Parent = _Instance
-        
-        local Stroke = Instance.new("UIStroke")
-        Stroke.Thickness = 1.5
-        Stroke.Color = Color3.fromRGB(40, 40, 40)
-        Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-        Stroke.Parent = _Instance
+    -- ONLY add rounding if it's a Frame, and NOT one of the internal UI parts
+    -- This prevents the 'Resize' error you were seeing!
+    if _Instance:IsA("Frame") then
+        local Name = _Instance.Name
+        -- We ignore internal Linoria objects that break when you add things to them
+        if Name ~= "Container" and Name ~= "Scroll" and Name ~= "Inner" then
+            local Corner = Instance.new("UICorner")
+            Corner.CornerRadius = UDim.new(0, 6)
+            Corner.Parent = _Instance
+            
+            -- Only add the stroke to main frames, not sub-elements
+            local Stroke = Instance.new("UIStroke")
+            Stroke.Thickness = 1.2
+            Stroke.Color = Color3.fromRGB(50, 50, 50)
+            Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+            Stroke.Parent = _Instance
+        end
     end
     
     return _Instance
