@@ -3650,112 +3650,152 @@ Players.PlayerRemoving:Connect(OnPlayerChange);
 getgenv().Library = Library
 
 function Library:StartSplash()
-    -- Locks directly onto Linoria's main background frame
-    local MainFrame = Library.Outer
-    if not MainFrame then return end
-    
-    -- 1. Create a black cover frame matching the EXACT size of the UI window
-    local SplashFrame = Instance.new("Frame")
-    SplashFrame.Size = UDim2.new(1, 0, 1, 0)
-    SplashFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-    SplashFrame.ZIndex = 50000 -- Forces it on top of everything inside the UI
-    SplashFrame.BackgroundTransparency = 0 -- Starts fully opaque to cover creation
-    SplashFrame.Parent = MainFrame
-    
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 6)
-    Corner.Parent = SplashFrame
-    
-    -- 2. Create the perfectly centered typewriter text
-    local Text = Instance.new("TextLabel")
-    Text.Size = UDim2.new(1, 0, 1, 0)
-    Text.BackgroundTransparency = 1
-    Text.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Text.Font = Enum.Font.Code
-    Text.TextSize = 18
-    Text.TextXAlignment = Enum.TextXAlignment.Center -- Center horizontally
-    Text.TextYAlignment = Enum.TextYAlignment.Center -- Center vertically
-    Text.ZIndex = 50001
-    Text.Parent = SplashFrame
-    
-    -- 3. Cool System Typewriter Logic (Type -> Delete -> Re-type)
-    local Phrase1 = "System Initializing..."
-    local Phrase2 = "Welcome to unnamed Lib."
-    
-    -- Type out Phrase 1
-    for i = 1, #Phrase1 do
-        Text.Text = string.sub(Phrase1, 1, i) .. "_"
-        task.wait(0.04)
-    end
-    task.wait(0.6)
-    
-    -- Delete Phrase 1 character by character
-    for i = #Phrase1, 0, -1 do
-        Text.Text = string.sub(Phrase1, 1, i) .. "_"
-        task.wait(0.02)
-    end
-    task.wait(0.3)
-    
-    -- Type out Phrase 2
-    for i = 1, #Phrase2 do
-        Text.Text = string.sub(Phrase2, 1, i) .. "_"
-        task.wait(0.05)
-    end
-    Text.Text = Phrase2 -- Clean up trailing underscore
-    task.wait(1.2)
-    
-    -- 4. Fade OUT the splash screen smoothly to reveal the main UI
-    local TweenService = game:GetService("TweenService")
-    TweenService:Create(SplashFrame, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
-    TweenService:Create(Text, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
-    task.wait(0.5)
-    
-    SplashFrame:Destroy()
+    task.spawn(function()
+        -- Deep scan loop to locate the main UI window frame safely
+        local MainFrame = nil
+        for i = 1, 30 do
+            for _, gui in pairs(game.CoreGui:GetChildren()) do
+                if gui:IsA("ScreenGui") then
+                    local frame = gui:FindFirstChildOfClass("Frame")
+                    if frame and (frame.Size.X.Offset > 400 or frame.Name == "Outer") then
+                        MainFrame = frame
+                        break
+                    end
+                end
+            end
+            if MainFrame then break end
+            task.wait(0.1)
+        end
+        
+        if not MainFrame and Library.Outer then MainFrame = Library.Outer end
+        if not MainFrame then return end -- Safety exit if UI window isn't open
+        
+        -- 1. Create the black cover frame matching the EXACT size of the UI window
+        local SplashFrame = Instance.new("Frame")
+        SplashFrame.Size = UDim2.new(1, 0, 1, 0)
+        SplashFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+        SplashFrame.ZIndex = 50000 -- Forces it on top of everything inside the UI
+        SplashFrame.BackgroundTransparency = 1 -- Starts fully clear to fade in
+        SplashFrame.Parent = MainFrame
+        
+        local Corner = Instance.new("UICorner")
+        Corner.CornerRadius = UDim.new(0, 6)
+        Corner.Parent = SplashFrame
+        
+        -- 2. Create the perfectly centered typewriter text
+        local Text = Instance.new("TextLabel")
+        Text.Size = UDim2.new(1, 0, 1, 0)
+        Text.BackgroundTransparency = 1
+        Text.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Text.Font = Enum.Font.Code
+        Text.TextSize = 16
+        Text.TextXAlignment = Enum.TextXAlignment.Center -- Center horizontally
+        Text.TextYAlignment = Enum.TextYAlignment.Center -- Center vertically
+        Text.TextTransparency = 1
+        Text.ZIndex = 50001
+        Text.Parent = SplashFrame
+        
+        -- 3. Smoothly Fade IN the black screen over the UI
+        local TweenService = game:GetService("TweenService")
+        TweenService:Create(SplashFrame, TweenInfo.new(0.4), {BackgroundTransparency = 0}):Play()
+        TweenService:Create(Text, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+        task.wait(0.5)
+        
+        -- 4. Typewriter Logic (Type -> Delete -> Re-type)
+        local Phrase1 = "System Initializing..."
+        local Phrase2 = "Welcome to unnamed Lib."
+        
+        -- Type out Phrase 1
+        for i = 1, #Phrase1 do
+            Text.Text = string.sub(Phrase1, 1, i) .. "_"
+            task.wait(0.04)
+        end
+        task.wait(0.6)
+        
+        -- Delete Phrase 1 character by character
+        for i = #Phrase1, 0, -1 do
+            Text.Text = string.sub(Phrase1, 1, i) .. "_"
+            task.wait(0.02)
+        end
+        task.wait(0.3)
+        
+        -- Type out Phrase 2
+        for i = 1, #Phrase2 do
+            Text.Text = string.sub(Phrase2, 1, i) .. "_"
+            task.wait(0.05)
+        end
+        Text.Text = Phrase2 -- Clean up trailing underscore
+        task.wait(1.2)
+        
+        -- 5. Smoothly Fade OUT the splash screen to reveal the main UI
+        TweenService:Create(SplashFrame, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+        TweenService:Create(Text, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+        task.wait(0.5)
+        
+        SplashFrame:Destroy()
+    end)
 end
 
 function Library:AddGameNameToTitle()
-    local MainFrame = Library.Outer
-    if not MainFrame then return end
-    
-    if not MainFrame:FindFirstChild("GameAbbreviationLabel") then
-        local GameLabel = Instance.new("TextLabel")
-        GameLabel.Name = "GameAbbreviationLabel"
-        GameLabel.Size = UDim2.new(0, 150, 0, 25) -- Fits the height of the top bar
-        GameLabel.Position = UDim2.new(1, -10, 0, 0) -- Fixed to the far right side
-        GameLabel.AnchorPoint = Vector2.new(1, 0)
-        GameLabel.BackgroundTransparency = 1
-        GameLabel.TextColor3 = Color3.fromRGB(180, 180, 180) -- Subtle clean grey
-        GameLabel.Font = Enum.Font.Code
-        GameLabel.TextSize = 13
-        GameLabel.TextXAlignment = Enum.TextXAlignment.Right
-        GameLabel.TextYAlignment = Enum.TextYAlignment.Center
-        GameLabel.ZIndex = 100 -- Makes sure it sits on top of the header background
-        
-        -- Built-in helper to turn game name into initials (e.g., "Cool Awesome Cheat" -> "CAC")
-        local MarketplaceService = game:GetService("MarketplaceService")
-        local function GetGameInitials()
-            local Success, Info = pcall(function() return MarketplaceService:GetProductInfo(game.PlaceId) end)
-            if not Success or not Info or not Info.Name then return "GME" end
-            
-            local CleanName = Info.Name:gsub("[^%w%s]", "") -- Strip weird characters
-            local Words = string.split(CleanName, " ")
-            
-            if #Words <= 1 then 
-                return string.upper(string.sub(CleanName, 1, 3)) 
-            end
-            
-            local Initials = ""
-            for _, Word in pairs(Words) do
-                if #Word > 0 then 
-                    Initials = Initials .. string.sub(Word, 1, 1) 
+    task.spawn(function()
+        -- Deep scan loop to locate the main UI window frame safely
+        local MainFrame = nil
+        for i = 1, 30 do
+            for _, gui in pairs(game.CoreGui:GetChildren()) do
+                if gui:IsA("ScreenGui") then
+                    local frame = gui:FindFirstChildOfClass("Frame")
+                    if frame and (frame.Size.X.Offset > 400 or frame.Name == "Outer") then
+                        MainFrame = frame
+                        break
+                    end
                 end
             end
-            return string.upper(Initials)
+            if MainFrame then break end
+            task.wait(0.1)
         end
         
-        GameLabel.Text = "[" .. GetGameInitials() .. "]"
-        GameLabel.Parent = MainFrame
-    end
+        if not MainFrame and Library.Outer then MainFrame = Library.Outer end
+        if not MainFrame then return end
+        
+        if not MainFrame:FindFirstChild("GameAbbreviationLabel") then
+            local GameLabel = Instance.new("TextLabel")
+            GameLabel.Name = "GameAbbreviationLabel"
+            GameLabel.Size = UDim2.new(0, 120, 0, 25) -- Perfect fit for the top header bar height
+            GameLabel.Position = UDim2.new(1, -10, 0, 0) -- Locked to the far right edge
+            GameLabel.AnchorPoint = Vector2.new(1, 0)
+            GameLabel.BackgroundTransparency = 1
+            GameLabel.TextColor3 = Color3.fromRGB(160, 160, 160) -- Clean, un-intrusive grey text
+            GameLabel.Font = Enum.Font.Code
+            GameLabel.TextSize = 13
+            GameLabel.TextXAlignment = Enum.TextXAlignment.Right
+            GameLabel.TextYAlignment = Enum.TextYAlignment.Center
+            GameLabel.ZIndex = 10000 -- Forces it to render directly over the header layer
+            
+            -- Built-in helper to automatically turn game names into initials (e.g. "Cool Awesome Cheat" -> "CAC")
+            local MarketplaceService = game:GetService("MarketplaceService")
+            local Success, Info = pcall(function() return MarketplaceService:GetProductInfo(game.PlaceId) end)
+            local Initials = "GME"
+            
+            if Success and Info and Info.Name then
+                local CleanName = Info.Name:gsub("[^%w%s]", "") -- Clean out special characters
+                local Words = string.split(CleanName, " ")
+                if #Words <= 1 then
+                    Initials = string.upper(string.sub(CleanName, 1, 3))
+                else
+                    local temp = ""
+                    for _, Word in pairs(Words) do
+                        if #Word > 0 then
+                            temp = temp .. string.sub(Word, 1, 1)
+                        end
+                    end
+                    Initials = string.upper(temp)
+                end
+            end
+            
+            GameLabel.Text = "[" .. Initials .. "]"
+            GameLabel.Parent = MainFrame
+        end
+    end)
 end
 
 return Library; -- <--- THIS MUST BE THE ABSOLUTE LAST LINE OF YOUR SCRIPT
