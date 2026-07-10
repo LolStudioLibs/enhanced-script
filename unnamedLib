@@ -119,31 +119,18 @@ function Library:AttemptSave()
 end;
 
 function Library:Create(Class, Properties)
-    -- 1. Default Properties to an empty table so it never crashes
-    Properties = Properties or {}
-    
-    -- 2. Create the instance
-    local _Instance = (type(Class) == 'string') and Instance.new(Class) or Class
-    
-    -- 3. Automatic "Good Look" (Rounding)
-    -- If it's a UI element (Frame, Button, Label), give it rounded corners
-    if _Instance:IsA("GuiObject") then
-        local Corner = Instance.new("UICorner")
-        Corner.CornerRadius = UDim.new(0, 6) -- Change 6 to whatever rounding you prefer
-        Corner.Parent = _Instance
-    end
-    
-    -- 4. Apply properties safely
+    local _Instance = Class;
+
+    if type(Class) == 'string' then
+        _Instance = Instance.new(Class);
+    end;
+
     for Property, Value in next, Properties do
-        -- We use pcall here so if 1 property is invalid (e.g., typo), 
-        -- the rest of your script keeps running instead of crashing
-        pcall(function()
-            _Instance[Property] = Value
-        end)
-    end
-    
-    return _Instance
-end
+        _Instance[Property] = Value;
+    end;
+
+    return _Instance;
+end;
 
 function Library:ApplyTextStroke(Inst)
     Inst.TextStrokeTransparency = 1;
@@ -153,7 +140,6 @@ function Library:ApplyTextStroke(Inst)
         Thickness = 1;
         LineJoinMode = Enum.LineJoinMode.Miter;
         Parent = Inst;
-        Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border -- This keeps the stroke inside the frame}
     });
 end;
 
